@@ -1,0 +1,495 @@
+<nz-layout class="app-layout">
+    <nz-sider class="menu-sidebar" nzTheme="light" nzCollapsible nzWidth="256px" nzBreakpoint="md" [(nzCollapsed)]="isCollapsed" [nzTrigger]="null">
+      <div class="sidebar-logo">
+        <a>
+          <img src="/assets/icons/Crompton-Favicon-2.svg" alt="logo">
+          <h1>Alvin Mactal</h1>
+        </a>
+      </div>
+      <ul nz-menu nzTheme="light" nzMode="inline" [nzInlineCollapsed]="true">
+        <li nz-menu-item nzTitle="Dashboard" nzMatchRouter="true">
+          <a ><i nz-icon nzType="dashboard"></i><span>Dashboard</span></a>
+        </li>
+        <li nz-menu-item nzTitle="Dashboard" nzMatchRouter="true">
+          <a><i nz-icon nzType="unordered-list"></i><span>Listings</span></a>
+        </li>
+        <li nz-menu-item nzTitle="Services" nzMatchRouter="true">
+          <a ><i nz-icon nzType="phone"></i><span>Leads</span></a>
+        </li>
+        <li nz-menu-item nzTitle="Services" nzMatchRouter="true">
+          <a><i nz-icon nzType="contacts"></i><span>Contacts</span></a>
+        </li>
+      </ul>
+    </nz-sider>
+    <nz-layout>
+      <nz-header>
+        <div class="app-header">
+          <div>
+            <span class="header-trigger" (click)="toggleMenu()">
+              <i class="trigger" nz-icon [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'"></i>
+            </span>
+          </div>
+          <div>
+            <ul nz-menu nzMode="horizontal">
+              <li nz-submenu nzIcon="bell" nz-dropdown [nzDropdownMenu]="notifications" nzPlacement="bottomRight">
+                <nz-dropdown-menu #notifications="nzDropdownMenu">
+                  <ul nz-menu dir="ltr">
+                    <div class="notifications">
+                      <div class="tw-px-2 tw-pb-1 tw-flex tw-justify-between">
+                        <a>Notifications ({{unreadNotifications}})</a>
+                        <a *ngIf="false" class="tw-text-sm"> Mark all as read</a>
+                      </div>
+                      <nz-divider></nz-divider>
+                      <nz-list [nzDataSource]="notificationList" [nzNoResult]="noNotifications">
+                        <nz-list-item *ngFor="let item of notificationList" class="tw-cursor-pointer hover:tw-bg-gray-200" [ngClass]="{'tw-bg-gray-100': !item.read_at}" (click)="routeToPage(item)">
+                          <nz-list-item-meta class="tw-px-2" [nzDescription]="notificationDescription">
+                            <ng-template #notificationDescription>
+                              <div class="tw-flex tw-items-center">
+                                <div class="tw-mr-3" [ngClass]="{'tw-text-blue': !item.read_at}"><i class="tw-text-2xl" nz-icon [nzType]="item.notifiable_type | notificationsIcons" [nzTheme]="'outline'"></i></div>
+                                <!-- <div class="tw-mr-3"><i class="tw-text-xl" nz-icon [nzType]="item.notifiable_type|notificationsIcons" [nzTheme]="item.read_at ? 'outline' : 'twotone'"></i></div> -->
+                                <div class="tw-flex-1">
+                                  <div class="tw-flex tw-justify-between">
+                                    <p class="tw-mb-0 tw-text-sm">{{item.subject}}</p>
+                                    <p class="tw-mb-0 tw-text-sm">
+                                      <nz-tooltip [nzTitle]="item.read_at ? 'Read' : 'Mark as read'" nzTooltipPlacement="left">
+                                        <span nz-tooltip class="tw-ml-2" (click)="markNotifIsRead(item)">
+                                          <i nz-icon nzType="mail" [nzTheme]="item.read_at ? 'outline' : 'twotone'"></i>
+                                        </span>
+                                      </nz-tooltip>
+                                    </p>
+                                  </div>
+                                  <div class="tw-flex">
+                                    <label class="tw-text-xs">{{item.created_at | date}}</label>
+                                  </div>
+                                </div>
+                              </div>
+                            </ng-template>
+                          </nz-list-item-meta>
+                        </nz-list-item>
+                        <ng-template #noNotifications>
+                          <nz-empty nzNotFoundContent="No Notifications"></nz-empty>
+                        </ng-template>
+                        <div *ngIf="false" class="tw-text-center tw-text-sm tw-p-1"><a [routerLink]="['/profile/notifications']">See All</a></div>
+                      </nz-list>
+                    </div>
+                  </ul>
+                </nz-dropdown-menu>
+              </li>  
+              <li nz-submenu nzIcon="setting">
+                <ul>
+                  <li nz-menu-item><a routerLink="/users"><i nz-icon nzType="usergroup-add" nzTheme="outline"></i>Users</a></li>
+                  <li nz-menu-item><a routerLink="/users/roles"></a><i nz-icon nzType="lock" nzTheme="outline"></i>Users Roles</li>
+                  <li nz-menu-item><a routerLink="/activities"></a><i nz-icon nzType="stock" nzTheme="outline"></i>Activites</li>
+                </ul>
+              </li>
+              <li nz-submenu nzIcon="user">
+                <ul>
+                  <li nz-menu-item><a routerLink="/profile"><i nz-icon nzType="user" nzTheme="outline"></i>Profile</a></li>
+                  <li nz-menu-item><a (click)="logout()"></a><i nz-icon nzType="poweroff" nzTheme="outline"></i>Logout</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nz-header>
+      <nz-content>
+        <div class="inner-content">
+            <nz-page-header class="page-header" [nzTitle]="pageHeader">
+                <nz-page-header-extra>
+                    <a nz-button nzShape="round">Cancel</a>
+                    <a nz-button nzType="primary" nzShape="round" (click)="save()"><i nz-icon nzType="save"
+                            nzTheme="outline"></i>Save</a>
+                </nz-page-header-extra>
+            </nz-page-header>
+            <section class="page-content">
+                <nz-spin [nzSize]="'large'" nzTip="Loading..." [nzSpinning]="pageLoader">
+                    <div class="tw-mb-3" *ngIf="error">
+                        <nz-alert nzType="error" [nzMessage]="error"></nz-alert>
+                    </div>
+                    <form nz-form [formGroup]="listingForm">
+                        <div class="tw-rounded tw-bg-white tw-shadow tw-p-5 tw-mb-5">
+                            <div nz-row>
+                                <div nz-col nzSpan="12">
+                                    <div nz-row>
+                                        <div nz-col nzSpan="24">
+                                            <h3 class="tw-m-2 tw-font-semibold tw-text-indigo-600">Property Details</h3>
+                                        </div>
+                                        <div nz-col nzSpan="12" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="Agent is Required">
+                                                    <nz-form-label nzNoColon="true">Agent</nz-form-label>
+                                                    <nz-select dropdown nzSize="large" nzShowSearch nzAllowClear
+                                                        nzPlaceHolder="Select Agent" formControlName="agent">
+                                                        <nz-option *ngFor="let item of agentList" [nzLabel]="item" [nzValue]="item">
+                                                        </nz-option>
+                                                    </nz-select>
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                        <div nz-col nzSpan="12" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="Agent is Required">
+                                                    <nz-form-label nzNoColon="true">Beds</nz-form-label>
+                                                    <nz-select dropdown nzSize="large" nzShowSearch nzAllowClear
+                                                        nzPlaceHolder="Select Beds" formControlName="beds">
+                                                        <nz-option *ngFor="let item of bedsList" [nzLabel]="item" [nzValue]="item">
+                                                        </nz-option>
+                                                    </nz-select>
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                    </div>
+            
+                                    <div nz-row>
+                                        <div nz-col nzSpan="12" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="Emirate is Required">
+                                                    <nz-form-label nzNoColon="true">Emirate</nz-form-label>
+                                                    <nz-select dropdown nzSize="large" nzShowSearch nzAllowClear
+                                                        nzPlaceHolder="Select Emirate" formControlName="city">
+                                                        <nz-option *ngFor="let item of cityLists" [nzLabel]="item" [nzValue]="item">
+                                                        </nz-option>
+                                                    </nz-select>
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                        <div nz-col nzSpan="12" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="Baths is Required">
+                                                    <nz-form-label nzNoColon="true">Baths</nz-form-label>
+                                                    <nz-select dropdown nzSize="large" nzShowSearch nzAllowClear
+                                                        nzPlaceHolder="Select Baths" formControlName="baths">
+                                                        <nz-option *ngFor="let item of bathsList" [nzLabel]="item" [nzValue]="item">
+                                                        </nz-option>
+                                                    </nz-select>
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                    </div>
+            
+            
+                                    <div nz-row>
+                                        <div nz-col nzSpan="12" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="Community is Required">
+                                                    <nz-form-label nzNoColon="true">Community</nz-form-label>
+                                                    <nz-select dropdown nzSize="large" nzShowSearch nzAllowClear
+                                                        nzPlaceHolder="Select Community" formControlName="location">
+                                                        <nz-option *ngFor="let item of locationList" [nzLabel]="item"
+                                                            [nzValue]="item">
+                                                        </nz-option>
+                                                    </nz-select>
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                        <div nz-col nzSpan="12" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="Parking is Required">
+                                                    <nz-form-label nzNoColon="true">Parking</nz-form-label>
+                                                    <nz-select dropdown nzSize="large" nzShowSearch nzAllowClear
+                                                        nzPlaceHolder="Select Parking" formControlName="parking">
+                                                        <nz-option *ngFor="let item of parkingList" [nzLabel]="item"
+                                                            [nzValue]="item">
+                                                        </nz-option>
+                                                    </nz-select>
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                    </div>
+            
+            
+                                    <div nz-row>
+                                        <div nz-col nzSpan="12" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="Sub Community is Required">
+                                                    <nz-form-label nzNoColon="true">Sub Community</nz-form-label>
+                                                    <nz-select dropdown nzSize="large" nzShowSearch nzAllowClear
+                                                        nzPlaceHolder="Select Sub Community" formControlName="sub_location">
+                                                        <nz-option *ngFor="let item of sublocationList" [nzLabel]="item"
+                                                            [nzValue]="item">
+                                                        </nz-option>
+                                                    </nz-select>
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                        <div nz-col nzSpan="12" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorViewp="View is Required">
+                                                    <nz-form-label nzNoColon="true">View</nz-form-label>
+                                                    <input type="text" nzSize="large" nz-input formControlName="view"
+                                                        placeholder="View" />
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                    </div>
+            
+            
+                                    <div nz-row>
+                                        <div nz-col nzSpan="12" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="Unit no. is Required">
+                                                    <nz-form-label nzNoColon="true">Unit no.</nz-form-label>
+                                                    <input type="text" nzSize="large" nz-input formControlName="unit_no"
+                                                        placeholder="Unit no." />
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                        <div nz-col nzSpan="12" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="Furnishing is Required">
+                                                    <nz-form-label nzNoColon="true">Furnishing</nz-form-label>
+                                                    <nz-select dropdown nzSize="large" nzShowSearch nzAllowClear
+                                                        nzPlaceHolder="Select Furnished" formControlName="furnished">
+                                                        <nz-option *ngFor="let item of furnishedList" [nzLabel]="item"
+                                                            [nzValue]="item">
+                                                        </nz-option>
+                                                    </nz-select>
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                    </div>
+            
+            
+                                    <div nz-row>
+                                        <div nz-col nzSpan="12" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="Type is Required">
+                                                    <nz-form-label nzNoColon="true">Type</nz-form-label>
+                                                    <input type="text" nzSize="large" nz-input formControlName="type"
+                                                        placeholder="Type" />
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                        <div nz-col nzSpan="12" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="Floor is Required">
+                                                    <nz-form-label nzNoColon="true">Floor</nz-form-label>
+                                                    <input type="text" nzSize="large" nz-input formControlName="floor"
+                                                        placeholder="Floor" />
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                    </div>
+            
+            
+                                    <div nz-row>
+                                        <div nz-col nzSpan="12" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="BUA is Required">
+                                                    <nz-form-label nzNoColon="true">BUA</nz-form-label>
+                                                    <input type="text" nzSize="large" nz-input formControlName="build_up_area"
+                                                        placeholder="BUA" />
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                        <div nz-col nzSpan="12" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="Street no. is Required">
+                                                    <nz-form-label nzNoColon="true">Street no.</nz-form-label>
+                                                    <input type="text" nzSize="large" nz-input formControlName="street_no"
+                                                        placeholder="Street no." />
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                    </div>
+            
+                                    <div nz-row>
+                                        <div nz-col nzSpan="24">
+                                            <h3 class="tw-m-2 tw-font-semibold tw-text-indigo-600">Property Pricing</h3>
+                                        </div>
+                                        <div nz-col nzSpan="12" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="Valid Price is Required">
+                                                    <nz-form-label nzNoColon="true">Price</nz-form-label>
+                                                    <input type="text" nzSize="large" nz-input formControlName="price"
+                                                        placeholder="Price" />
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                        <div nz-col nzSpan="12" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="Cheques is Required">
+                                                    <nz-form-label nzNoColon="true">Cheques</nz-form-label>
+                                                    <nz-select dropdown nzSize="large" nzShowSearch nzAllowClear
+                                                        nzPlaceHolder="Select Cheques" formControlName="cheques">
+                                                        <nz-option *ngFor="let item of chequesList" [nzLabel]="item"
+                                                            [nzValue]="item">
+                                                        </nz-option>
+                                                    </nz-select>
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                    </div>
+            
+                                    <div nz-row>
+                                        <div nz-col nzSpan="12" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="Valid Price / Sqft is Required">
+                                                    <nz-form-label nzNoColon="true">Price / Sqft</nz-form-label>
+                                                    <input type="text" nzSize="large" nz-input formControlName="price_per_sq_feet"
+                                                        placeholder="Price / Sqft" />
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                        <div nz-col nzSpan="12" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="Commission is Required">
+                                                    <nz-form-label nzNoColon="true">Commission</nz-form-label>
+                                                    <input type="text" nzSize="large" nz-input formControlName="commission"
+                                                        placeholder="Commission" />
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                    </div>
+            
+                                    <div nz-row>
+                                        <div nz-col nzSpan="12" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="Agent is Required">
+                                                    <nz-form-label nzNoColon="true">Frequency</nz-form-label>
+                                                    <nz-select dropdown nzSize="large" nzShowSearch nzAllowClear
+                                                        nzPlaceHolder="Select Frequency" formControlName="frequency">
+                                                        <nz-option *ngFor="let item of frequencyList" [nzLabel]="item"
+                                                            [nzValue]="item">
+                                                        </nz-option>
+                                                    </nz-select>
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                        <div nz-col nzSpan="12" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="Deposit is Required">
+                                                    <nz-form-label nzNoColon="true">Deposit</nz-form-label>
+                                                    <input type="text" nzSize="large" nz-input formControlName="deposit"
+                                                        placeholder="Deposit" />
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                    </div>
+                                    <div nz-row>
+                                        <div nz-col nzSpan="12" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="Agent is Required">
+                                                    <nz-form-label nzNoColon="true">Status</nz-form-label>
+                                                    <nz-select dropdown nzSize="large" nzShowSearch nzAllowClear
+                                                        nzPlaceHolder="Select Status" formControlName="status">
+                                                        <nz-option nzLabel="Published" nzValue="Published">
+                                                        </nz-option>
+                                                        <nz-option nzLabel="Unpublished" nzValue="Unpublished">
+                                                        </nz-option>
+                                                        <nz-option nzLabel="Draft" nzValue="Draft">
+                                                        </nz-option>
+                                                        <nz-option nzLabel="Awaiting Approval" nzValue="Awaiting Approval">
+                                                        </nz-option>
+                                                    </nz-select>
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                        <div nz-col nzSpan="12" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="Description is Required">
+                                                    <nz-form-label nzNoColon="true">Notes</nz-form-label>
+                                                    <textarea [nzAutosize]="{ minRows: 4, maxRows: 4 }" type="text" nzSize="large"
+                                                        nz-input formControlName="notes" placeholder="Notes"></textarea>
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                    </div>
+            
+            
+                                </div>
+                                <div nz-col nzSpan="12">
+                                    <div nz-row>
+                                        <div nz-col nzSpan="24">
+                                            <div nz-row>
+                                                <div nz-col nzSpan="12">
+                                                    <h3 class="tw-m-2 tw-font-semibold tw-text-indigo-600">Media & Ad Copy</h3>
+                                                    </div>
+                                                    <div nz-col nzSpan="12" style="text-align: end; text-decoration: underline;">
+                                                        <a (click)="save()" class="tw-m-2 tw-font-semibold tw-text-indigo-600">Preview Ad</a>
+                                                    </div>
+                                                    </div>
+                                        
+                                        </div>
+                                        <div nz-col nzSpan="24" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="Title is Required">
+                                                    <nz-form-label nzNoColon="true">Title</nz-form-label>
+                                                    <input type="text" nzSize="large" nz-input formControlName="title"
+                                                        placeholder="Title" />
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                    </div>
+                                    <div nz-row>
+                                        <div nz-col nzSpan="24" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="Description is Required">
+                                                    <nz-form-label nzNoColon="true">Description</nz-form-label>
+                                                    <textarea [nzAutosize]="{ minRows: 9, maxRows: 9 }" type="text" nzSize="large"
+                                                        nz-input formControlName="description"
+                                                        placeholder="Description (300 Words)"></textarea>
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                    </div>
+                                    <div nz-row>
+                                        <div nz-col nzSpan="24" style="padding-left: 8px; padding-right: 8px;" class="tw-pt-6">
+                                            <nz-form-item>
+                                                <nz-form-control nzErrorTip="Title is Required">
+                                                    <nz-form-label nzNoColon="true">Video Tour URL</nz-form-label>
+                                                    <input type="text" nzSize="large" nz-input formControlName="virtual_tour_url"
+                                                        placeholder="Video Tour URL (Youtube, Vimeo, etc)" />
+                                                </nz-form-control>
+                                            </nz-form-item>
+                                        </div>
+                                    </div>
+                                    <div nz-row>
+                                        <div nz-col nzSpan="24">
+                                            <h3 class="tw-m-2 tw-font-semibold tw-text-indigo-600">Features</h3>
+                                        </div>
+                                        <div nz-col nzSpan="24" style="padding-left: 8px; padding-right: 8px;">
+                                            <div nz-row formGroupName="features">
+                                                <div nz-col nzSpan="8" *ngFor="let item of featuresList; let i=index"><label
+                                                        nz-checkbox nzValue="item" [formControlName]="i"
+                                                        (ngModelChange)="checkboxSelected($event, item)">{{item}}</label></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div nz-row class="tw-pt-16">
+                                        <div nz-col nzSpan="24">
+                                            <h3 class="tw-m-2 tw-font-semibold tw-text-indigo-600">Images</h3>
+                                        </div>
+                                        <div nz-col nzSpan="24" style="padding-left: 8px; padding-right: 8px;">
+                                            <nz-upload nzType="drag" [nzMultiple]="true">
+                                                <p class="ant-upload-drag-icon">
+                                                    <i nz-icon nzType="inbox"></i>
+                                                </p>
+                                                <p class="ant-upload-text">Click or drag file to this area to upload</p>
+                                            </nz-upload>
+                                        </div>
+                                    </div>
+                                    <div nz-row>
+                                        <div nz-col nzSpan="24">
+                                            <h3 class="tw-m-2 tw-font-semibold tw-text-indigo-600">Portals</h3>
+                                        </div>
+                                        <div nz-col nzSpan="24" style="padding-left: 8px; padding-right: 8px;">
+                                            <div nz-row formGroupName="portals">
+                                                <div nz-col nzSpan="8" *ngFor="let item of portalList; let i=index"><label
+                                                        nz-checkbox nzValue="item" [formControlName]="i"
+                                                        (ngModelChange)="portalSelected($event, item)">{{item}}</label></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </nz-spin>
+            
+            </section>            
+        </div>
+      </nz-content>
+    </nz-layout>
+  </nz-layout>
+  
